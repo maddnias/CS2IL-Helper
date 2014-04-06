@@ -1,0 +1,14 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="CS2ILHelper/MyClass.cs">
+    <Files>
+      <File FileName="CS2ILHelper/MyClass.cs" Line="14" Column="43" />
+      <File FileName="CS2ILHelper/Disassembler.cs" Line="14" Column="48" />
+      <File FileName="CS2ILHelper/Compiler.cs" Line="17" Column="4" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
