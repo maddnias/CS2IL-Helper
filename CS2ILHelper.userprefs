@@ -1,11 +1,21 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="CS2ILHelper/MyClass.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="CS2ILHelper/Helper.cs">
     <Files>
-      <File FileName="CS2ILHelper/MyClass.cs" Line="14" Column="43" />
-      <File FileName="CS2ILHelper/Disassembler.cs" Line="14" Column="48" />
-      <File FileName="CS2ILHelper/Compiler.cs" Line="17" Column="4" />
+      <File FileName="CS2ILHelper/Disassembler.cs" Line="157" Column="27" />
+      <File FileName="CS2ILHelper/Helper.cs" Line="14" Column="16" />
+      <File FileName="CS2ILHelper/Compiler.cs" Line="37" Column="32" />
     </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State expanded="True">
+          <Node name="CS2ILHelper" expanded="True" selected="True" />
+          <Node name="Newtonsoft.Json.Net35" expanded="True">
+            <Node name="Linq" expanded="True" />
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
