@@ -37,6 +37,7 @@
     <Compile Include="Compiler.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="DataClasses.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -8,13 +8,13 @@ using Mono.Cecil.Cil;
 using System.IO;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace CS2ILHelper
 {
 	public class Disassembler
-	{
-		public string DisassembleMethod(string filename, bool comments) {
-			
+	{			
+		public JArray DisassembleMethod(string filename, bool comments) {
 			var asmDef = AssemblyDefinition.ReadAssembly (filename);
 			asmDef.MainModule.ReadSymbols ();
 			var method = asmDef.EntryPoint.DeclaringType.Methods[2];
@@ -58,81 +58,41 @@ namespace CS2ILHelper
 				}
 			}
 			
+			var outDict = new JArray();
+			var lines = outString.ToString ().Split (new[] { Environment.NewLine }, StringSplitOptions.None);
+			
+			foreach(var line in lines)
+				outDict.Add(JObject.FromObject(new DataClasses.CodeBlock(-1, line )));
+			
+			var count = 0;
 			foreach(var instr in method.Body.Instructions) {
-				outString.AppendLine(string.Format ("  {0}{1}|{2}", instr.ToString (), (comments ? GenerateComment(instr, method) : null),
-				                                    method.Body.Instructions.IndexOf (instr)));	
+				outDict.Add (JObject.FromObject(new DataClasses.CodeBlock(count++, 
+				                        string.Format("  {0}{1}", instr.ToString (), (comments ? instr.GenerateComment(method) : null)))));
 			}
 			
-			outString.AppendLine("}");
-			return JsonConvert.SerializeObject(outString.ToString ());
+			outDict.Add (JObject.FromObject(new DataClasses.CodeBlock(-1, "}")));
+			
+			return outDict;
 		}
-		
-		public string GenerateComment(Instruction instr, MethodDefinition method) {
-			if(instr.IsLdarg()) {
-				var param = instr.ResolveParameter(method);
-				return "\t // " + param.ParameterType.Name + " " + param.Name;
-			}
 			
-			if(instr.IsStloc() || instr.IsLdloc()) {
-				var local = instr.ResolveLocal(method.Body);
-				return "\t // " + local.VariableType.Name + " " + local.Name;
-			}
-			
-			return null;
-		}
-		
-		sealed class CodeMap {
-			public int Line;
-			public List<Instruction> Instructions;
-			public string[] Source;
-			
-			public CodeMap() {
-			}
-			
-			public CodeMap(string[] source) {
-				Instructions = new List<Instruction>();	
-				Source = source;
-			}
-			
-			public static CodeMap operator +(CodeMap map1, CodeMap map2) {
-				if(map1.Line != map2.Line)
-					throw new Exception("Code maps cannot be merged (line)");
-				if(map1.Source != map2.Source)
-					throw new Exception("Code maps cannot be merged (source)");
-				
-				map1.Instructions.AddRange (map2.Instructions);
-				return map1;
-			}
-			
-			public override string ToString (){
-				var instructionParser = new StringBuilder();
-				
-				foreach(var instr in Instructions) {
-					instructionParser.Append(instr.Offset + ",");
-				}
-				
-				return string.Format (instructionParser.ToString ().TrimEnd (','));
-			}
-		}
-		
-		public string GetCodeMapping(string filename) {
+		public JArray GetCodeMapping(string filename) {
 			ModuleDefinition modDef;
 			
 			using (var symbolStream = File.OpenRead(filename + ".mdb"))
-            {
-                var readerParameters = new ReaderParameters
-                    {
-                        ReadSymbols = true,
-                        SymbolReaderProvider = new MdbReaderProvider()
-                    };
-                modDef = ModuleDefinition.ReadModule(filename, readerParameters);
-            }
+			{
+				var readerParameters = new ReaderParameters
+				{
+					ReadSymbols = true,
+					SymbolReaderProvider = new MdbReaderProvider()
+				};
+				modDef = ModuleDefinition.ReadModule(filename, readerParameters);
+			}
 			
 			var method = modDef.EntryPoint.DeclaringType.Methods[2];
-			var codeMappings = new List<CodeMap>();
+			var codeMappings = new List<DataClasses.CodeMap>();
 			var sourceCode = File.ReadAllLines("./files/test");
 
-			CodeMap currentMap = null;
+			DataClasses.CodeMap currentMap = null;
 			
 			foreach(var instr in method.Body.Instructions)
 			{
@@ -141,38 +101,30 @@ namespace CS2ILHelper
 					if(currentMap != null)
 						codeMappings.Add (currentMap);
 					
-					currentMap = new CodeMap(sourceCode);
-					currentMap.Line = instr.SequencePoint.StartLine;
-					currentMap.Instructions.Add (instr);
+					currentMap = new DataClasses.CodeMap(sourceCode);
+					// Skip source overhead
+					currentMap.Line = instr.SequencePoint.StartLine - 7;
+					currentMap.InstructionIndexes.Add (method.Body.Instructions.IndexOf(instr));
 				} else {
-					currentMap.Instructions.Add (instr);
+					currentMap.InstructionIndexes.Add (method.Body.Instructions.IndexOf(instr));
 				}
 			}
 			
 			codeMappings.RemoveAll(x => x == null);
 			MergeCodeMaps(codeMappings);
 			
-			var outString = new StringBuilder();
-			
+			var outArr = new JArray();		
 			foreach(var map in codeMappings) {
-				outString.Append("_");
-				outString.Append(map.Line -7);
-				outString.Append("_");
-				outString.Append("|");
-				foreach(var instr in map.Instructions) {
-					var idx = method.Body.Instructions.IndexOf (instr);
-					outString.Append(idx+",");
-				}
-				outString.Remove (outString.Length -1, 1);
+				outArr.Add (JObject.FromObject(map, new JsonSerializer { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }));
 			}
 			
-			return JsonConvert.SerializeObject(outString.ToString());
+			return outArr;
 		}
 		
 		// I'm sure there are better LINQy ways to do this...
-		void MergeCodeMaps(List<CodeMap> maps) {
+		void MergeCodeMaps(List<DataClasses.CodeMap> maps) {
 			for(var i = 0;i < maps.Count;i++) {
-				var mergableMaps = new List<CodeMap>();
+				var mergableMaps = new List<DataClasses.CodeMap>();
 				if((mergableMaps = maps.FindAll(x => x.Line == maps[i].Line)).Count > 1) {
 					foreach(var mergableMap in mergableMaps.Where(x => x != maps[i])) {
 						maps[i] += mergableMap;

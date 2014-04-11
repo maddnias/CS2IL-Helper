@@ -6,6 +6,20 @@ namespace CS2ILHelper
 {
 	public static class Extensions
 	{
+		public static string GenerateComment(this Instruction instr, MethodDefinition method) {
+			if(instr.IsLdarg()) {
+				var param = instr.ResolveParameter(method);
+				return "\t // " + param.ParameterType.Name + " " + param.Name;
+			}
+			
+			if(instr.IsStloc() || instr.IsLdloc()) {
+				var local = instr.ResolveLocal(method.Body);
+				return "\t // " + local.VariableType.Name + " " + local.Name;
+			}
+			
+			return null;
+		}
+		
 		public static bool IsLdarg(this Instruction instr) {
 			return instr.OpCode.Code == Code.Ldarg ||
 			   instr.OpCode.Code == Code.Ldarga ||

@@ -8,8 +8,8 @@ namespace CS2ILHelper
 	public class Helper
 	{
 		public static void Main(string[] args) {			
-			string errors, sanitized;
-			var success = new Compiler().Compile(args[0], args[1], args[2], out sanitized, out errors);
+			string errors;
+			var success = new Compiler().Compile(args[0], args[1], args[2], out errors);
 			var comments = args[3] == "on";
 			
 			if(!success)
@@ -22,7 +22,7 @@ namespace CS2ILHelper
 			var disassembly = disasm.DisassembleMethod (args[1], comments);
 			var codeMap = disasm.GetCodeMapping(args[1]);
 
-			Console.WriteLine (new JObject(new JProperty("Disassembly", disassembly), new JProperty("CodeMap", codeMap), new JProperty("Source", sanitized)));
+			Console.WriteLine(new JObject(new JProperty("Disassembly", disassembly), new JProperty("CodeMap", codeMap)));
 			
 			if(File.Exists (args[0]))
 				File.Delete (args[0]);
@@ -32,9 +32,6 @@ namespace CS2ILHelper
 			
 			if(File.Exists (args[1] + ".mdb"))
 				File.Delete(args[1] + ".mdb");
-			
-			if(File.Exists ("./files/source"))
-				File.Delete ("./files/source");
 		}
 	}
 }

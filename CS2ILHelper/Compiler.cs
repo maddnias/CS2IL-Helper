@@ -11,9 +11,9 @@ namespace CS2ILHelper
 {
 	public class Compiler
 	{
-		private CSharpCodeProvider _provider = new CSharpCodeProvider(new Dictionary<string, string>() { { "CompilerVersion", "v4.5" } });
+		private CSharpCodeProvider _provider;
 		
-		public bool Compile(string file, string output, string version, out string sanitizedSource, out string errors) {
+		public bool Compile(string file, string output, string version, out string errors) {
 			_provider = new CSharpCodeProvider(new Dictionary<string, string>() { { "CompilerVersion", "v" + version[0] + "." + version[1] } });
 			
 			var src = System.IO.File.ReadAllText (file);
@@ -36,10 +36,8 @@ namespace CS2ILHelper
 				"public class Stub" + Environment.NewLine +
 				"{" + Environment.NewLine +
 				"public static void Main(string[] args){}" + Environment.NewLine;
-			code += (sanitizedSource = src.Split (new[] { "---CODE---" }, StringSplitOptions.None)[1]);
+			code += src.Split (new[] { "---CODE---" }, StringSplitOptions.None)[1];
 			code += "}" + Environment.NewLine + "}";
-			
-			File.WriteAllText ("./files/source", code);
 			
 			var result = _provider.CompileAssemblyFromSource(@params, code);
 			var formattedErrors = new StringBuilder();
