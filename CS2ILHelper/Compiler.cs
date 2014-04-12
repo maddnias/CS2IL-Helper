@@ -6,6 +6,7 @@ using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace CS2ILHelper
 {
@@ -13,7 +14,7 @@ namespace CS2ILHelper
 	{
 		private CSharpCodeProvider _provider;
 		
-		public bool Compile(string file, string output, string version, out string errors) {
+		public bool Compile(string file, string output, string version, out JArray errors) {
 			_provider = new CSharpCodeProvider(new Dictionary<string, string>() { { "CompilerVersion", "v" + version[0] + "." + version[1] } });
 			
 			var src = System.IO.File.ReadAllText (file);
@@ -40,12 +41,12 @@ namespace CS2ILHelper
 			code += "}" + Environment.NewLine + "}";
 			
 			var result = _provider.CompileAssemblyFromSource(@params, code);
-			var formattedErrors = new StringBuilder();
 			
-			foreach(var err in result.Errors)
-				formattedErrors.AppendLine(err.ToString ());
 			
-			errors = formattedErrors.ToString ();
+			errors = new JArray();
+			
+			for(var i = 0;i < result.Errors.Count;i++)
+				errors.Add (JObject.FromObject(new DataClasses.CodeBlock(i, result.Errors[i].ToString ())));
 			return !result.Errors.HasErrors;
 		}
 		

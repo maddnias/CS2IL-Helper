@@ -8,13 +8,13 @@ namespace CS2ILHelper
 	public class Helper
 	{
 		public static void Main(string[] args) {			
-			string errors;
+			JArray errors;
 			var success = new Compiler().Compile(args[0], args[1], args[2], out errors);
 			var comments = args[3] == "on";
 			
 			if(!success)
 			{
-				Console.WriteLine("Compilation failed! Errors:" + Environment.NewLine + Environment.NewLine + errors);
+				Console.WriteLine(new JObject(new JProperty("Errors", errors)));
 				return;
 			}
 			
@@ -22,7 +22,7 @@ namespace CS2ILHelper
 			var disassembly = disasm.DisassembleMethod (args[1], comments);
 			var codeMap = disasm.GetCodeMapping(args[1]);
 
-			Console.WriteLine(new JObject(new JProperty("Disassembly", disassembly), new JProperty("CodeMap", codeMap)));
+			Console.WriteLine(new JObject(new JProperty("Disassembly", disassembly), new JProperty("CodeMap", codeMap), new JProperty("Errors", errors)));
 			
 			if(File.Exists (args[0]))
 				File.Delete (args[0]);
